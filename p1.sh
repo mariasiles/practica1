@@ -19,7 +19,7 @@ case $opcio in
 	'q') echo "Sortint de l'aplicació"
 	     exit 0
 	     ;;
-	'lp') awk -F',' '!seen[$8]++ { printf "%-15s   %-25s\n", $7, $8 }' cities.csv 
+	'lp') awk -F',' '!seen[$8]++ { printf "%s   %-25s\n", $7, $8 }' cities.csv 
 	     ;;
 	'sc') read -p "Introdueix el nom del país:" country_name
 		
@@ -119,10 +119,12 @@ echo "S'està generant un fitxer $file2 amb les poblacions de l'estat selecciona
 	   wikidata=$(awk -F',' -v country="$codi_country" -v state="$codi_state" -v city="$city_name" ' { if ($7 == country && $4 == state && $2 == city) { print $11 } }' cities.csv)
      if [ -z "$wikidata" ]; then 
   echo " No s'ha trobat la wikidataId per a la població especificada"
-else
-	file3="${wikidata}.json"
-	curl "https://www.wikidata.org/wiki/Special:EntityData/${wikidata}.json" > "$file3"
-	echo "S'han obtingut les dades i emmagatzemades en l'arxiu $file3"
+   else
+	   wikidata2=$(echo "$wikidata" | tr -d '\r')
+	   wikidata_url="https://www.wikidata.org/wiki/Special:EntityData/$wikidata2.json"
+	   wget 0 "$wikidata2.json" "$wikidata_url"
+	   
+
         
  fi
 fi
