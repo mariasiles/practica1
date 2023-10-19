@@ -19,7 +19,7 @@ case $opcio in
 	'q') echo "Sortint de l'aplicació"
 	     exit 0
 	     ;;
-	'lp') awk -F',' '!seen[$8]++ { printf "%s   %-25s\n", $7, $8 }' cities.csv 
+	'lp') awk -F',' '!seen[$8]++ { printf "%-15s   %-25s\n", $7, $8 }' cities.csv 
 	     ;;
 	'sc') read -p "Introdueix el nom del país:" country_name
 		
