@@ -120,9 +120,9 @@ echo "S'està generant un fitxer $file2 amb les poblacions de l'estat selecciona
      if [ -z "$wikidata" ]; then 
   echo " No s'ha trobat la wikidataId per a la població especificada"
    else
-	   wikidata2=$(echo "$wikidata" | tr -d '\r')
-	   wikidata_url="https://www.wikidata.org/wiki/Special:EntityData/$wikidata2.json"
-	   wget 0 "$wikidata2.json" "$wikidata_url"
+	     file3="${wikidata}.json"
+	    curl -o "$file3" "https://www.wikidata.org/wiki/Special:EntityData/$wikidata.json"
+	    cat "${wikidata}.json"
 	   
 
         
