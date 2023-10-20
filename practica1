@@ -1,0 +1,172 @@
+#!/bin/bash
+codi_country="XX"
+codi_state="XX"
+#definim dues variables i fem un echo de les opcions
+while true; do
+echo "Escull una opció"
+echo "1-Sortir (q)"
+echo "2-Llistar països (lp)"
+echo "3-Seleccionar país (sc)."
+echo "4-Seleccionar estat (se)"
+echo "5-Llistar els estats del país seleccionat (le)"
+echo "6-Llistar les poblacions del país seleccionat (lcp)"
+echo "7-Extreure les poblacions del país seleccionat (ecp)"
+echo "8-Llistar les poblacions de l’estat seleccionat (lce)"
+echo "9-Extreure les poblacions de l’estat seleccionat (ece)"
+echo "10-Obtenir dades d’una ciutat de la WikiData (gwd)"
+echo "11-Obtenir estadístiques (est)"
+read -p "Escull una opció " opcio
+case $opcio in
+	'q') echo "Sortint de l'aplicació"  #aquesta opció senyala el final del programa"
+	     exit 0
+	     ;;
+	'lp') awk -F',' '!seen[$8]++ { printf "%-15s   %-25s\n", $7, $8 }' cities.csv     #llista dels països on s'eliminen els que estiguin repetits i es marca la separació entre les columnes del codi i el nom del país 
+	     ;;
+	'sc') read -p "Introdueix el nom del país: " country_name #variable que es crea quan l'usuari introdueix el nom d'un país
+		
+		if [ -z "$country_name" ]; then    #si country_name està buida el codi és "XX"
+			echo "No s'ha escrit un nou país. Codi: $codi_country"
+		else
+			 
+		        codi_country_nuevo=$(awk -F',' -v name="$country_name" ' $8 == name && !seen[$7]++ {print $7}' cities.csv)      #nova variable que conté el codi del país que hi ha a la columna 7 que concorda amb el país introduït
+		if [ -z "$codi_country_nuevo" ]; then     #si el codi no es troba i la variable està buida el codi del país es manté "XX"
+			codi_country_nuevo="XX"
+			codi_country="$codi_country_nuevo"
+			echo "País no trobat. Se li asigna el valor: $codi_country_nuevo"
+		else           #si no està buida la variable de codi_country_nuevo, el què contingui també ho contindrà la variable original: codi_country
+		        codi_country="$codi_country_nuevo"
+			echo "Codi del país actualitzat: $codi_country"
+		fi
+		fi
+		;;
+	
+	 'se') read -p "Introdueix el nom de l'estat: " state_name
+		if [ "$codi_country" == "XX" ]; then
+		    echo "Primer introdueix un país amb l'ordre sc"
+	    else
+	          if [ -z "$state_name" ]; then
+	       echo "No s'ha escrit un nou estat. Codi: $codi_state"
+#si el codi_country equival a "XX" i no s'ha introduït un estat fem dos echos
+
+		else
+			codi_state_nuevo=$(awk -F',' -v country="$codi_country" -v name="$state_name" '$7 == country && $5 == name && !seen[$4]++ {print $4}' cities.csv) #creem una nova variable que contigui la columna 4 equivalent a l'estat i país introduïts.
+       	if [ -z "$codi_state_nuevo" ]; then
+
+		codi_state_nuevo="XX"
+		codi_state="$codi_state_nuevo"
+	      	echo "Estat no trobat. Se li assigna el valor: $codi_state_nuevo"
+#si la variable està buida igual que en "sc" el codi_state val "XX"
+	else
+		  
+
+                  codi_state="$codi_state_nuevo"
+                  echo "Codi de l'estat actualitzat: $codi_state"
+#La variable codi_state que contenia "XX" l'actualitzem amb el nou codi trobat a la columna 4
+	            fi
+		   fi
+		fi
+		   
+		 
+		;;
+
+
+ 
+        'le') if [ "$codi_country" == "XX" ]; then
+		echo "Primer selecciona un país amb l'ordre sc"
+#Si no s'ha introduït un país la variable està buida
+	      else
+		     echo "LListat d'estats del país seleccionat ($codi_country):"
+		      awk -F',' -v country="$codi_country" '$7 == country && !seen[$5]++ {print $4, $5}' cities.csv
+		      #es fa una llista dels estats i el seu codi (columnes 4 i 5) segons el país introduït en "sc"
+	fi
+	;;
+       'lcp') if [ "$codi_country" == "XX" ]; then
+	       echo "Primer selecciona un país amb l'ordre sc"
+#Si no s'ha introduït un país la variable està buida
+		else
+		      echo "LListat de poblacions del país seleccionat ($codi_country):"
+		      awk -F',' -v country="$codi_country" '{ if ($7 == country) { printf "%-25s   %-10s\n", $2, $11 } }' cities.csv
+#es fa una llista de les poblacions i la seva wikidat (columnes 2 i 11) segons el país introduït en "sc"      
+	fi
+	;;
+       'ecp') if [ "$codi_country" == "XX" ]; then
+	       echo "Primer selecciona un país amb l'ordre sc"
+#Si no s'ha introduït un país la variable està buida
+	      else
+		file="$codi_country.csv"     #creem una variable que sigui un arxiu.csv
+		echo "S'està generant un fitxer $file amb les poblacions del país seleccioant ($codi_country)"
+		awk -F',' -v country="$codi_country" '{ if ($7 == country) { printf "%s,%s\n", $2, $11 } }' cities.csv > "$file"
+#igual que en l'anterior apartat obtenim la llista de poblacions i wikidat però la sortida la fem en l'arxiu file
+	fi
+	;;
+       'lce') if [ "$codi_country" == "XX" ]; then
+	       echo "Primer selecciona un país amb l'ordre sc"
+#Si no s'ha introduït un país la variable està buida
+
+       elif [ "$codi_state" == "XX" ]; then
+	       echo "Primer selecciona un estat amb l'ordre se"
+#Si no s'ha introduït un país la variable està buida
+
+       else
+	     echo "Llistat de poblacions de l'estat i país seleccionat ($codi_country):"
+	       awk -F',' -v country="$codi_country" -v state="$codi_state" '{ if ($7 == country && $4 == state) { printf "%-30s %-10s\n", $2, $11 } }' cities.csv
+	       #es fa una llista de les poblacions i la seva wikidat (columnes 2 i 11) segons l'estat introduït en "se"        
+       fi
+	;;
+'ece') if [ "$codi_country" == "XX" ]; then
+	echo "Primer selecciona un país amb l'ordre sc"
+      elif [ "$codi_state" == "XX" ]; then
+	echo "Primer selecciona un estat amb l'ordre se"
+#Si no s'ha introduït un país les variables estan buides
+
+else
+	file2="${codi_country}_${codi_state}.csv" #creem una variable que sigui un arxiu.csv
+echo "S'està generant un fitxer $file2 amb les poblacions de l'estat seleccionat ($codi_state)"
+ awk -F',' -v country="$codi_country" -v state="$codi_state" ' { if ($7 == country && $4 == state) { printf "%s,%s\n", $2, $11 } }' cities.csv >"$file2"
+ #es fa una llista de les poblacions i la seva wikidat (columnes 2 i 11) segons l'estat introduït en "se" però aquesta llista és desa en file2
+
+fi
+					            ;;
+'gwd') if [ "$codi_country" == "XX" ]; then
+        echo "Primer selecciona un país amb l'ordre sc"
+       elif [ "$codi_state" == "XX" ]; then
+        echo "Primer selecciona un estat amb l'ordre se"	
+#Si no s'ha introduït un país les variables estan buides
+
+     else
+	   read -p "Introdueix el nom d'una població: " city_name
+	   wikidata=$(awk -F ',' -v country="$codi_country" -v state="$codi_state" -v city="$city_name" '$7 == country && $4 == state && $2 == city { print $11 }' cities.csv)
+#creem la variable wikidata que equival a la columna 11 segons la ciutat que s'ha introduït "city_name"
+   	   if [ -z "$wikidata" ]; then
+		echo "No s'ha trobat la wikidataId per a la població especificada"
+#si la variable està buida vol dir que no s'ha trobat cap wikidata en cities.csv que sigui equivalent a la ciutat introduïda.
+	else
+		file3="${wikidata}.json" #creem una variable que és un arxiu .json
+		curl -o "$file3" "https://www.wikidata.org/wiki/Special:EntityData/$wikidata.json"
+	cat "$file3"
+#busquem en la direcció url les dades de la població i les guardem en file3. Després imprimim aquest arxiu.
+        
+ fi
+fi
+ ;;
+'est') awk -F',' '{
+	if ($9>0) nord++
+	else if ($9<0) sud++
+	if ($10>0) est++
+	else if ($10<0) oest++
+	if ($9 == 0 && $10 == 0) no_ubic++
+	if ($11 == "") no_wdid++
+	}
+	END{
+	printf "Nord %d Sud %d Est %d Oest %d No ubic %d No WDid %d\n", nord, sud, est, oest, no_ubic, no_wdid
+}' cities.csv
+
+#comparem si les columnes 9 i 10 són superiors o inferiors a 0 i segons si són </> s'aumenta el nord/sud, l'est/oest i el comptador de no ubicació. Per últim, si la columna 11 està buida s'incrementa en poblacions sense wikidatId. Després ho imprimim. 
+
+;;
+	
+
+
+        
+	esac
+done
